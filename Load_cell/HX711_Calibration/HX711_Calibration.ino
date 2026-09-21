@@ -40,18 +40,19 @@
 HX711 scale;
 
 //float calibration_factor = -7050; //-7050 worked for my 440lb max scale setup
-//float calibration_factor = -3198;  // test for kg
-float calibration_factor = 10;
+float calibration_factor = -1850;
 
 float current_reading = 0.0;
+String inString;
 
 void setup() {
   Serial.begin(9600);
   Serial.println("HX711 calibration sketch");
   Serial.println("Remove all weight from scale");
   Serial.println("After readings begin, place known weight on scale");
-  Serial.println("Press + or a to increase calibration factor");
-  Serial.println("Press - or z to decrease calibration factor");
+  Serial.println("Press + or a to increase calibration factor by 10");
+  Serial.println("Press - or z to decrease calibration factor by 10");
+  Serial.println("Enter any value (must be more than 1 digit) to update the calibration factor");
 
   scale.begin(DOUT, CLK);
   scale.set_scale();
@@ -70,19 +71,28 @@ void loop() {
 
   Serial.print("Reading: ");
   Serial.print(current_reading);
-  //Serial.print(scale.get_units(), 1);
-  //Serial.print(" lbs"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
   Serial.print(" g");
-  Serial.print(" calibration_factor: ");
+  Serial.print("\tcalibration_factor: ");
   Serial.print(calibration_factor);
   Serial.println();
 
-  if(Serial.available())
-  {
-    char temp = Serial.read();
-    if(temp == '+' || temp == 'a')
-      calibration_factor += 10;
-    else if(temp == '-' || temp == 'z')
-      calibration_factor -= 10;
+  if(Serial.available()) {
+    inString = Serial.readString();
+    if (inString.length() > 3) {
+      // set the calibration factor to this number
+      calibration_factor = inString.toFloat();
+      Serial.print("Setting calibration factor to ");
+      Serial.println(calibration_factor);
+    }
+    else {
+      Serial.print("string length: ");
+      Serial.println(inString.length());
+      // get the char
+      char temp = inString[0];
+      if(temp == '+' || temp == 'a')
+        calibration_factor += 10;
+      else if(temp == '-' || temp == 'z')
+        calibration_factor -= 10;
+    }
   }
 }
