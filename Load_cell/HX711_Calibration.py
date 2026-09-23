@@ -30,7 +30,7 @@ def create_console_handler():
     return console_handler
 
 # CREATE LOGGER
-logger = logging.getLogger(name='flow sensor')
+logger = logging.getLogger(name='load cell')
 logger.setLevel(logging.DEBUG)
 logger.propagate = False        # removes duplicate log messages
 console_handler = create_console_handler()
@@ -222,7 +222,7 @@ class app(QGroupBox):
                 self.receive_box.append(dataStr)
 
                 # Send to main window for recording
-                try: self.window().receive_data_from_device('flow sensor','FL',str_value)
+                try: self.window().receive_data_from_device('load cell','FL',str_value)
                 except AttributeError as err: pass
 
             except UnicodeDecodeError as err:   logger.error('Serial read error: %s',err)
@@ -242,5 +242,5 @@ if __name__ == "__main__":
     app1 = QApplication(sys.argv)
     theWindow = app()
     theWindow.show()
-    theWindow.setWindowTitle('Flow Sensor Widget')
+    theWindow.setWindowTitle('Load Cell Widget')
     sys.exit(app1.exec_())
