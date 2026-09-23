@@ -52,7 +52,7 @@ void setup() {
   Serial.println("After readings begin, place known weight on scale");
   Serial.println("Press + or a to increase calibration factor by 10");
   Serial.println("Press - or z to decrease calibration factor by 10");
-  Serial.println("Enter any value (must be more than 3 digits long) to update the calibration factor");
+  Serial.println("Enter any value (must be 2+ digits long) to update the calibration factor");
 
   scale.begin(DOUT, CLK);
   scale.set_scale();
@@ -73,34 +73,31 @@ void loop() {
   Serial.print(current_reading);
   Serial.print(" g");
   Serial.print("\tcalibration_factor: ");
-  Serial.print(calibration_factor);
-  Serial.println();
-
+  Serial.println(calibration_factor);
+  
   if(Serial.available()) {
     inString = Serial.readString();
     inString.trim();  // remove leading/trailing whitespaces
-    if (inString.length() > 4) {
-      if (inString.equals("tare")) {
-        Serial.println("Resetting scale to zero");
-        scale.tare();
-        scale.set_scale(calibration_factor); //Adjust to this calibration factor
-      }
-      else {
-        // set the calibration factor to this number
-        calibration_factor = inString.toFloat();
-        Serial.print("Setting calibration factor to ");
-        Serial.println(calibration_factor);
-      }
+    if (inString.equals("tare")) {
+      Serial.println("Resetting scale to zero");
+      scale.tare();
+      scale.set_scale(calibration_factor); //Adjust to this calibration factor
     }
-    else {
-      Serial.print("string length: ");
-      Serial.println(inString.length());
+    else if (inString.length() == 1) {
+      //Serial.print("string length: ");
+      //Serial.println(inString.length());
       // get the char
       char temp = inString[0];
       if(temp == '+' || temp == 'a')
         calibration_factor += 10;
       else if(temp == '-' || temp == 'z')
-        calibration_factor -= 10;
+        calibration_factor -= 10;      
+    }
+    else {
+      // set the calibration factor to this number
+      calibration_factor = inString.toFloat();
+      Serial.print("Setting calibration factor to ");
+      Serial.println(calibration_factor);
     }
   }
 }
