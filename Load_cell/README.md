@@ -1,14 +1,16 @@
 # Load cell reading
 
 
-## Materials:
+## Setup
+
+### Materials
 - Arduino UNO
 - Load cell (taken from [WeighGram Top-600](https://www.amazon.com/dp/B000O37TDO?ref=clp_hp_h_pc&th=1) scale)
 - [HX711 Amplifier](https://www.sparkfun.com/sparkfun-load-cell-amplifier-hx711.html#content-features)
 - Dupont wires
 
 
-## Setup
+### Hardware Setup
 
 - Break load cell out of scale. Connect female crimp pins to red, black, green, and white wires
 - Connect load cell to Sparkfun HX711 amplifier board
@@ -20,15 +22,14 @@
     - CLK ---> 2
     - GND ---> GND
 
-### Install HX711 package
+### Install HX711 Arduino package
 
 - Download .zip file from [HX711 Github](https://github.com/bogde/HX711).
 - In Arduino, go to Sketch --> Include Library --> Add .ZIP Library
 - Select HX711-master.zip
 
-## Calibration
+### Upload sketch
 
-Determine the calibration factor using ```HX711_Calibration.ino```.
 - Remove all weight from scale
 - Upload sketch
     - Scale will tare and reset to zero
@@ -37,4 +38,68 @@ Determine the calibration factor using ```HX711_Calibration.ino```.
 
 To be continued...
 
+---
 
+## Software Installation:
+
+1. Open a command prompt/terminal
+
+2. Navigate to the directory you want to store these files
+   
+   ```bash
+   cd <folder_you_want>
+   ```
+   **Note:** folder name may need to be in quotes
+
+3. Clone this repository & navigate into that folder
+   ```bash
+   git clone https://github.com/tooles01/Mar_lab-Food_delivery.git
+   cd Mar_lab-Food_delivery
+   ```
+
+    **Note:** If git is not installed:
+    - Click the green "<>Code" button above
+    - Click "Download ZIP"
+    - Extract the files. Copy the extracted folder into the desired directory
+    - Rename the folder "Mar_lab-Food_delivery"
+    - Go back to the open terminal and type in:
+        ```bash
+        cd Mar_lab-Food_delivery
+        ```
+
+4. Create & activate a virtual environment
+
+    Windows:
+    ```bash
+    python -m venv <environment_name>
+    <environment_name\scripts\activate.bat
+    ```
+    Linux:
+    ```bash
+    python3 -m venv <environment_name>
+    source environment_name/bin/activate
+    ```
+
+5. Install dependencies
+   ```bash
+   pip install PyQt5 pyserial
+   ```
+
+6. Run the application
+
+    Windows:
+   ```bash
+   python Load_cell/HX711_Calibration.py
+   ```
+    Linux:
+   ```bash
+   python3 Load_cell/HX711_Calibration.py
+   ```
+
+---
+
+# Quick Start
+- Open command prompt/terminal
+- Navigate into the directory "Mar_lab-Food_delivery"
+- Activate virtual environment
+- Run the application
