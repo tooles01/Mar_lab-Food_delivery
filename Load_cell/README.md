@@ -1,7 +1,38 @@
 # Load cell reading
 
+---
+
+# Quick Start
 
 ## Setup
+- Open command prompt/terminal
+- Navigate into the directory "Mar_lab-Food_delivery"
+- Activate virtual environment
+- Run the python application ```HX711_Calibration.py```
+
+## Usage
+
+### Basic usage
+- Open the GUI and connect to the Arduino
+![image](images/connect_to_device.png)
+- Current reading and calibration factor will be displayed in the "Data received" box
+![image](images/current_reading.png)
+
+### To tare:
+- Remove all weight from the scale
+- Click **"Tare"**
+- The current reading will reset to 0.00 g
+
+### To calibrate
+- Tare the scale
+- Place a known weight on the scale
+- Adjust the calibration factor until the reading matches the known weight
+
+<br>
+
+---
+
+# Setup
 
 ### Materials
 - Arduino UNO
@@ -35,8 +66,7 @@
     - Scale will tare and reset to zero
 - Open serial monitor at 9600 baud
 
-
-To be continued...
+<br>
 
 ---
 
@@ -96,10 +126,3 @@ To be continued...
    python3 Load_cell/HX711_Calibration.py
    ```
 
----
-
-# Quick Start
-- Open command prompt/terminal
-- Navigate into the directory "Mar_lab-Food_delivery"
-- Activate virtual environment
-- Run the application
