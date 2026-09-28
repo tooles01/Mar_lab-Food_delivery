@@ -40,7 +40,7 @@
 HX711 scale;
 
 //float calibration_factor = -7050; //-7050 worked for my 440lb max scale setup
-float calibration_factor = -1860;
+float calibration_factor = -1883;
 
 float current_reading = 0.0;
 String inString;
