@@ -16,10 +16,14 @@ ST 2026
 
 import sys
 import logging
+import os, csv
 
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtSerialPort
 from serial.tools import list_ports
+from datetime import datetime
+import re
+
 
 def create_console_handler():    
     console_handler_formatter = logging.Formatter('%(asctime)s : %(name)-14s :%(levelname)-8s: %(message)s',datefmt='%H:%M:%S')
@@ -29,6 +33,33 @@ def create_console_handler():
     
     return console_handler
 
+def find_log_directory():
+    '''
+    Returns directory where log file will be stored
+        data_file_directory = directory_to_save_to + "\\data_files"
+    '''
+    
+    directory_to_save_to = os.getcwd()
+    data_file_directory = os.path.join(directory_to_save_to,data_file_folder_name)
+    if not os.path.exists(data_file_directory):   # If folder does not exist, create it
+        logger.info('creating result file directory at %s', data_file_directory)
+        os.mkdir(data_file_directory)
+    
+    return data_file_directory
+
+def get_current_time():
+    current_time = datetime.time(datetime.now())
+    current_time_f = current_time.strftime('%H:%M:%S.%f')
+    current_time_str = current_time_f[:-3]
+    return current_time_str
+
+########################################
+current_date = str(datetime.date(datetime.now()))
+data_file_folder_name = 'data_files'
+main_datafile_directory = find_log_directory()
+FLOAT = r"[-+]?\d*\.?\d+"
+
+########################################
 # CREATE LOGGER
 logger = logging.getLogger(name='load cell')
 logger.setLevel(logging.DEBUG)
@@ -47,18 +78,22 @@ class app(QGroupBox):
         self.generate_ui()
         self.set_connected(False)
 
+    
+    ########################################
     # CREATE GUI ELEMENTS
     def generate_ui(self):
         self.create_connect_box()
         self.create_settings_box()
         self.create_calibration_factor_box()
         self.create_data_receive_box()
+        self.create_datafile_box()
 
         top_layout = QHBoxLayout()
         col1 = QVBoxLayout()
         col1.addWidget(self.connect_box)
         col1.addWidget(self.settings_box)
         col1.addWidget(self.calibration_factor_box)
+        col1.addWidget(self.datafile_groupbox)
         col2 = QVBoxLayout()
         col2.addWidget(self.data_receive_box)
         top_layout.addLayout(col1)
@@ -132,7 +167,71 @@ class app(QGroupBox):
         receive_box_layout.addRow(QLabel("Data received"),self.clear_btn)
         receive_box_layout.addRow(self.receive_box)
         self.data_receive_box.setLayout(receive_box_layout)
+
+    def create_datafile_box(self):
+        self.datafile_groupbox = QGroupBox('Data File')
+
+        # Determine today's file directory
+        self.today_resultfiles_dir = os.path.join(main_datafile_directory,current_date)
+        
+        # if this directory exists: get number of last datafile in it
+        if os.path.exists(self.today_resultfiles_dir):
+            # check what files are in this folder
+            list_of_files = os.listdir(self.today_resultfiles_dir)
+            list_of_files = [x for x in list_of_files if '.csv' in x]   # only get csv files
+            if not list_of_files:
+                self.last_datafile_number = -1  # if there are no files
+            else:
+                # find the number of the last data file
+                last_datafile = list_of_files[len(list_of_files)-1]
+                idx_fileExt = last_datafile.rfind('.')
+                last_datafile = last_datafile[:idx_fileExt] # remove file extension
+                idx_underscore = last_datafile.rfind('_')   # find last underscore
+                last_datafile_num = last_datafile[idx_underscore+1:]
+                if last_datafile_num.isnumeric():   # if what's after the underscore is a number
+                    self.last_datafile_number = int(last_datafile_num)
+                else:
+                    self.last_datafile_number = 98  # if the last file doesn't have a number
+                    logger.warning('last datafile in this folder is %s',last_datafile)
+        # if this directory does not exist
+        else:
+            self.last_datafile_number = -1
+        
+        # Create datafile name
+        self.this_datafile_number = self.last_datafile_number + 1
+        self.this_datafile_number_padded = str(self.this_datafile_number).zfill(2) # zero pad
+        data_file_name = current_date + '_datafile_' + self.this_datafile_number_padded
+        
+        # GUI FEATURES
+        self.data_file_name_lineEdit = QLineEdit(text=data_file_name)
+        self.data_file_textedit = QTextEdit(readOnly=True)
+        self.data_file_dir_lineEdit = QLineEdit(text=self.today_resultfiles_dir,readOnly=True)
+        self.data_file_notes_wid = QLineEdit()
+        
+        # BUTTONS
+        self.begin_record_btn = QPushButton(text='Create File && Begin Recording',checkable=True)
+        self.begin_record_btn.clicked.connect(self.begin_record_btn_clicked)
+        self.end_record_btn = QPushButton(text='End Recording',checkable=True)
+        self.end_record_btn.clicked.connect(self.end_recording)
+        self.end_record_btn.setEnabled(False)
+        
+        record_layout = QHBoxLayout()
+        record_layout.addWidget(self.begin_record_btn)
+        record_layout.addWidget(self.end_record_btn)
+        
+        # LAYOUT
+        layout = QFormLayout()
+        layout.addRow(QLabel('Directory:'),self.data_file_dir_lineEdit)
+        layout.addRow(QLabel('File Name:'),self.data_file_name_lineEdit)
+        layout.addRow(QLabel('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'))
+        layout.addRow(QLabel('Notes:'),self.data_file_notes_wid)
+        layout.addRow(QLabel('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'))
+        layout.addRow(record_layout)
+        layout.addRow(self.data_file_textedit)
+        self.datafile_groupbox.setLayout(layout)
     
+    
+    ########################################
     # CONNECT TO DEVICE
     def get_ports(self):
         self.port_widget.clear()
@@ -199,6 +298,7 @@ class app(QGroupBox):
             self.port_widget.setEnabled(False)
             self.settings_box.setEnabled(True)
             self.calibration_factor_box.setEnabled(True)
+            self.datafile_groupbox.setEnabled(True)
         
         else:
             logger.info('Disconnected from ' + self.port_widget.currentText())
@@ -209,7 +309,87 @@ class app(QGroupBox):
             self.port_widget.setEnabled(True)
             self.settings_box.setEnabled(False)
             self.calibration_factor_box.setEnabled(False)
+            self.datafile_groupbox.setEnabled(False)
 
+    
+    ########################################
+    # RECORD DATA
+    def begin_record_btn_clicked(self):
+        # Record button was checked- Begin Recording
+        if self.begin_record_btn.isChecked() == True:
+            logger.debug('begin record button clicked')
+            self.begin_record_btn.setText('Pause Recording')
+            self.end_record_btn.setEnabled(True)
+            
+            # Get file name & directory from GUI
+            datafile_name = self.data_file_name_lineEdit.text()
+            self.datafile_dir = os.path.join(self.data_file_dir_lineEdit.text(),f"{datafile_name}.csv")
+            
+            # If directory does not already exist: Create it
+            if not os.path.exists(self.data_file_dir_lineEdit.text()):
+                os.makedirs(self.data_file_dir_lineEdit.text(), exist_ok=True)
+                #os.mkdir(self.data_file_dir_lineEdit.text())
+                logger.debug('created folder at %s', self.data_file_dir_lineEdit.text())
+            
+            # If file does not already exist: Create it & write header
+            if not os.path.exists(self.datafile_dir):
+                logger.info('Creating new file: %s (%s)', datafile_name, self.datafile_dir)
+                File = datafile_name, ' '
+                file_created_time = get_current_time()
+                file_created_time = file_created_time[:-4]
+                Time = 'File Created: ', str(current_date + ' ' + file_created_time)
+                # Write file header
+                with open(self.datafile_dir,'a',newline='') as f:
+                    writer = csv.writer(f,delimiter=',')
+                    writer.writerow(File)
+                    writer.writerow(Time)
+                # Display (for the user)
+                self.data_file_textedit.append(datafile_name)
+                self.data_file_textedit.append('File Created: ' + str(current_date + ' ' + file_created_time))
+
+                # Write notes to file
+                self.this_file_notes = self.data_file_notes_wid.text()
+                notes_line_header = 'Notes: ', self.this_file_notes
+                with open(self.datafile_dir,'a',newline='') as f:
+                    writer = csv.writer(f,delimiter=',')
+                    writer.writerow(notes_line_header)
+                self.data_file_textedit.append('Notes: ' + self.this_file_notes)
+                
+                # Write variable headers to file
+                DataHead = 'Time','Instrument','Unit','Value'
+                with open(self.datafile_dir,'a',newline='') as f:
+                    writer = csv.writer(f,delimiter=',')
+                    writer.writerow("")
+                    writer.writerow("")
+                    writer.writerow(DataHead)
+            
+            # If file already exists
+            else:
+                logger.warning('File already exists: resuming recording to %s',self.datafile_dir)
+        # Record button was unchecked - Pause Recording
+        else:
+            logger.info('Recording paused')
+            self.begin_record_btn.setText('Resume Recording')
+
+    def end_recording(self):
+        logger.info('Ended recording to file: %s', self.data_file_name_lineEdit.text())        
+        
+        self.last_datafile_number = self.this_datafile_number + 1
+        
+        # update file number in box
+        self.this_datafile_number = self.this_datafile_number + 1
+        self.this_datafile_number_padded = str(self.this_datafile_number).zfill(2) # zero pad
+        data_file_name = current_date + '_datafile_' + self.this_datafile_number_padded
+        self.data_file_name_lineEdit.setText(data_file_name)
+
+        self.begin_record_btn.setText('Create File && Begin Recording')
+        self.begin_record_btn.setChecked(False)
+        self.end_record_btn.setChecked(False)
+        self.end_record_btn.setEnabled(False)
+        self.data_file_textedit.clear()
+   
+    
+    ########################################
     # SEND/RECEIVE DATA
     def receive(self):
         if self.serial.canReadLine() == True:
@@ -217,13 +397,24 @@ class app(QGroupBox):
             try:
                 text = text.decode("utf-8")
                 text = text.rstrip('\r\n')
-                str_value = text
-                dataStr = str_value + '\t'
-                self.receive_box.append(dataStr)
+                self.receive_box.append(text)
 
-                # Send to main window for recording
-                try: self.window().receive_data_from_device('load cell','FL',str_value)
-                except AttributeError as err: pass
+                # Pull out the reading and calibration value
+                r = re.search(rf"reading\s*[:=]?\s*({FLOAT})", text, re.IGNORECASE)
+                c = re.search(rf"calibration[\s_-]*factor\s*[:=]?\s*({FLOAT})", text, re.IGNORECASE)
+                if r and c:
+                    reading = float(r.group(1))
+                    calibration_value = float(c.group(1))
+
+                    # if recording is ON: write to datafile
+                    if self.begin_record_btn.isChecked():
+                        current_time = get_current_time()
+                        write_to_file = current_time,reading,calibration_value
+                        with open(self.datafile_dir,'a',newline='') as f:
+                            writer = csv.writer(f,delimiter=',')
+                            writer.writerow(write_to_file)
+                        display_to_box = str(write_to_file)
+                        self.data_file_textedit.append(display_to_box[1:-1])
 
             except UnicodeDecodeError as err:   logger.error('Serial read error: %s',err)
     
