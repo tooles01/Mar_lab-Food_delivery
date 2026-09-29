@@ -1,29 +1,41 @@
 # Load cell reading
 
+
+Arduino script & Python GUI for reading/recording from load cell
+
+
 ---
 
 # Quick Start
 
-## Setup
+### [Set up hardware](#hardware-setup)
+
+### [Install python GUI](#software-installation)
+
+### Run GUI
 - Open command prompt/terminal
 - Navigate into the directory "Mar_lab-Food_delivery"
 - Activate virtual environment
 - Run the python application ```HX711_Calibration.py```
 
-## Usage
+<br>
 
-### Basic usage
+---
+
+# Usage
+
+## Basic usage
 - Open the GUI and connect to the Arduino
 ![image](images/connect_to_device.png)
 - Current reading and calibration factor will be displayed in the "Data received" box
 ![image](images/current_reading.png)
 
-### To tare:
+## To tare:
 - Remove all weight from the scale
 - Click **"Tare"**
 - The current reading will reset to 0.00 g
 
-### To calibrate
+## To calibrate
 - Tare the scale
 - Place a known weight on the scale
 - Adjust the calibration factor until the reading matches the known weight
@@ -32,7 +44,7 @@
 
 ---
 
-# Setup
+# Hardware Setup
 
 ### Materials
 - Arduino UNO
@@ -41,12 +53,16 @@
 - Dupont wires
 
 
-### Hardware Setup
+### Assembly
 
-- Break load cell out of scale. Connect female crimp pins to red, black, green, and white wires
-- Connect load cell to Sparkfun HX711 amplifier board
-    - Swap white and green wire positions
-- Connect DX711 to Arduino UNO
+- Break load cell out of scale.
+- Solder red and black wires to corresponding positions on Sparkfun HX711 amplifier board
+    - red wire --> **RED**
+    - black wire --> **BLK**
+- Solder white and green wires to **opposite** positions on HX711 board
+    - green wire --> **WHT**
+    - white wire --> **GRN**
+- Connect HX711 to Arduino UNO
     - Jumper VCC/VDD
     - VCC ---> 3.3V # TODO check if this should be 5V instead...
     - DAT ---> 3
@@ -70,7 +86,7 @@
 
 ---
 
-## Software Installation:
+# Software Installation:
 
 1. Open a command prompt/terminal
 
