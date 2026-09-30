@@ -7,7 +7,7 @@ PyQt5-based GUI for connecting to, reading from, and calibrating load cell.
 To be used with HX711_Calibration.ino
 
 Requirements
-    PtQt5
+    PyQt5
     pyserial
 
 
@@ -40,7 +40,7 @@ def find_log_directory():
     '''
     
     directory_to_save_to = os.getcwd()
-    data_file_directory = os.path.join(directory_to_save_to,data_file_folder_name)
+    data_file_directory = os.path.join(directory_to_save_to,'data_files')
     if not os.path.exists(data_file_directory):   # If folder does not exist, create it
         logger.info('creating result file directory at %s', data_file_directory)
         os.mkdir(data_file_directory)
@@ -55,7 +55,6 @@ def get_current_time():
 
 ########################################
 current_date = str(datetime.date(datetime.now()))
-data_file_folder_name = 'data_files'
 main_datafile_directory = find_log_directory()
 FLOAT = r"[-+]?\d*\.?\d+"
 
@@ -78,7 +77,7 @@ class app(QGroupBox):
         self.generate_ui()
         self.set_connected(False)
 
-    
+
     ########################################
     # CREATE GUI ELEMENTS
     def generate_ui(self):
@@ -144,7 +143,7 @@ class app(QGroupBox):
         
         self.send_lineedit = QLineEdit()
         self.send_lineedit.setPlaceholderText("-1870")
-        self.send_lineedit.setToolTip("Enter calibration factor")
+        self.send_lineedit.setToolTip("Enter new calibration factor to send")
         self.send_btn = QPushButton("Send")
         self.send_lineedit.returnPressed.connect(lambda: self.send_to_arduino(self.send_lineedit.text()))
         self.send_btn.clicked.connect(lambda: self.send_to_arduino(self.send_lineedit.text()))
@@ -157,15 +156,21 @@ class app(QGroupBox):
     def create_data_receive_box(self):
         self.data_receive_box = QGroupBox()
 
-        self.receive_box = QTextEdit(readOnly=True)
+        self.raw_write_display = QTextEdit(readOnly=True)
+        self.raw_read_display = QTextEdit(readOnly=True)
 
-        self.clear_btn = QPushButton("Clear")
-        self.clear_btn.setToolTip("Clear previous values from display")
-        self.clear_btn.clicked.connect(lambda: self.receive_box.clear())
+        self.clear_btn_write = QPushButton("Clear")
+        self.clear_btn_read = QPushButton("Clear")
+        self.clear_btn_write.setToolTip("Clear previous values from display")
+        self.clear_btn_read.setToolTip("Clear previous values from display")
+        self.clear_btn_write.clicked.connect(lambda: self.raw_write_display.clear())
+        self.clear_btn_read.clicked.connect(lambda: self.raw_read_display.clear())
         
         receive_box_layout = QFormLayout()
-        receive_box_layout.addRow(QLabel("Data received"),self.clear_btn)
-        receive_box_layout.addRow(self.receive_box)
+        receive_box_layout.addRow(QLabel("Data sent:"),self.clear_btn_write)
+        receive_box_layout.addRow(self.raw_write_display)
+        receive_box_layout.addRow(QLabel("Data received:"),self.clear_btn_read)
+        receive_box_layout.addRow(self.raw_read_display)
         self.data_receive_box.setLayout(receive_box_layout)
 
     def create_datafile_box(self):
@@ -229,7 +234,7 @@ class app(QGroupBox):
         layout.addRow(record_layout)
         layout.addRow(self.data_file_textedit)
         self.datafile_groupbox.setLayout(layout)
-    
+
     
     ########################################
     # CONNECT TO DEVICE
@@ -311,7 +316,6 @@ class app(QGroupBox):
             self.calibration_factor_box.setEnabled(False)
             self.datafile_groupbox.setEnabled(False)
 
-    
     ########################################
     # RECORD DATA
     def begin_record_btn_clicked(self):
@@ -397,7 +401,7 @@ class app(QGroupBox):
             try:
                 text = text.decode("utf-8")
                 text = text.rstrip('\r\n')
-                self.receive_box.append(text)
+                self.raw_read_display.append(text)
 
                 # Pull out the reading and calibration value
                 r = re.search(rf"reading\s*[:=]?\s*({FLOAT})", text, re.IGNORECASE)
@@ -414,7 +418,7 @@ class app(QGroupBox):
                             writer = csv.writer(f,delimiter=',')
                             writer.writerow(write_to_file)
                         display_to_box = str(write_to_file)
-                        self.data_file_textedit.append(display_to_box[1:-1])
+                        self.data_file_textedit.append(display_to_box[1:-1])                
 
             except UnicodeDecodeError as err:   logger.error('Serial read error: %s',err)
     
@@ -422,7 +426,11 @@ class app(QGroupBox):
         bArr_send = strToSend.encode()
         try:
             if self.serial.isOpen():
-                self.serial.write(bArr_send)                # send to Arduino
+                if len(bArr_send) > 0:
+                    self.serial.write(bArr_send)                # send to Arduino
+                    self.raw_write_display.append(strToSend)    # Display string that was sent
+                else:
+                    logger.warning("Nothing to send")
             else:
                 logger.warning('Serial port not open, cannot send parameter: %s', strToSend)
         except AttributeError as err:
