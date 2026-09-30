@@ -1,22 +1,47 @@
 # Load cell reading
 
-
 Arduino script & Python GUI for reading/recording from load cell
-
 
 ---
 
 # Quick Start
 
-### [Set up hardware](#hardware-setup)
+### [Set up hardware](#hardware)
 
-### [Install python GUI](#software-installation)
+### [Set up firmware](#firmware)
+
+### [Install python GUI](#software)
 
 ### Run GUI
-- Open command prompt/terminal
-- Navigate into the directory "Mar_lab-Food_delivery"
-- Activate virtual environment
-- Run the python application ```HX711_Calibration.py```
+
+1. **Open command prompt/terminal**
+2. **Navigate into the directory "Mar_lab-Food_delivery"**
+    
+    ```bash
+    cd Mar_lab-Food_delivery
+    ```
+
+3. **Activate virtual environment**
+
+    Windows:
+    ```bash
+    <environment_name\scripts\activate.bat
+    ```
+    Linux:
+    ```bash
+    source environment_name/bin/activate
+    ```
+
+4. **Run the python application**
+
+    Windows:
+   ```bash
+   python Load_cell/HX711_Calibration.py
+   ```
+    Linux:
+   ```bash
+   python3 Load_cell/HX711_Calibration.py
+   ```
 
 <br>
 
@@ -44,7 +69,9 @@ Arduino script & Python GUI for reading/recording from load cell
 
 ---
 
-# Hardware Setup
+# Setup
+
+## Hardware
 
 ### Materials
 - Arduino UNO
@@ -54,7 +81,6 @@ Arduino script & Python GUI for reading/recording from load cell
 
 
 ### Assembly
-
 - Break load cell out of scale.
 - Solder red and black wires to corresponding positions on Sparkfun HX711 amplifier board
     - red wire --> **RED**
@@ -69,24 +95,26 @@ Arduino script & Python GUI for reading/recording from load cell
     - CLK ---> 2
     - GND ---> GND
 
-### Install HX711 Arduino package
 
+## Firmware
+
+### Install HX711 Arduino package
 - Download .zip file from [HX711 Github](https://github.com/bogde/HX711).
-- In Arduino, go to Sketch --> Include Library --> Add .ZIP Library
-- Select HX711-master.zip
+- In Arduino, go to **Sketch** --> **Include Library** --> **Add .ZIP Library**
+- Select **HX711-master.zip** from your downloads folder
 
 ### Upload sketch
-
 - Remove all weight from scale
+- Plug in Arduino via USB
 - Upload sketch
+    - Open [```HX711_Calibration_Arduino.ino```](HX711_Calibration_Arduino) in the Arduino IDE
+    - Select:
+        - **Tools** --> **Board** --> Board type you are using
+        - **Port** --> Port the board is connected to
+        - **Sketch** --> **Upload**
     - Scale will tare and reset to zero
-- Open serial monitor at 9600 baud
 
-<br>
-
----
-
-# Software Installation:
+## Software
 
 1. Open a command prompt/terminal
 
@@ -141,4 +169,3 @@ Arduino script & Python GUI for reading/recording from load cell
    ```bash
    python3 Load_cell/HX711_Calibration.py
    ```
-
