@@ -1,5 +1,5 @@
 /*
- * HX711_Calibration.ino
+ * HX711_Calibration_Arduino.ino
  * 
  * 
  * Modified version of Sparkfun example calibration script found at:
