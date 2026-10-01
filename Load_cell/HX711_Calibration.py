@@ -33,6 +33,14 @@ def create_console_handler():
     
     return console_handler
 
+########################################
+# CREATE LOGGER
+logger = logging.getLogger(name='load cell')
+logger.setLevel(logging.DEBUG)
+logger.propagate = False        # removes duplicate log messages
+console_handler = create_console_handler()
+logger.addHandler(console_handler)
+
 def find_log_directory():
     '''
     Returns directory where log file will be stored
@@ -57,14 +65,6 @@ def get_current_time():
 current_date = str(datetime.date(datetime.now()))
 main_datafile_directory = find_log_directory()
 FLOAT = r"[-+]?\d*\.?\d+"
-
-########################################
-# CREATE LOGGER
-logger = logging.getLogger(name='load cell')
-logger.setLevel(logging.DEBUG)
-logger.propagate = False        # removes duplicate log messages
-console_handler = create_console_handler()
-logger.addHandler(console_handler)
 
 flowSens_baud = 9600
 noPortMsg = ' ~ No COM ports detected ~'
@@ -105,7 +105,7 @@ class app(QGroupBox):
 
         self.connect_box.setMaximumHeight(self.connect_box.sizeHint().height())
         self.settings_box.setMaximumHeight(self.settings_box.sizeHint().height())
-
+        
     def create_connect_box(self):
         self.connect_box = QGroupBox("Connect")
 
@@ -175,32 +175,25 @@ class app(QGroupBox):
 
     def create_datafile_box(self):
         self.datafile_groupbox = QGroupBox('Data File')
-
-        # Determine today's file directory
-        self.today_resultfiles_dir = os.path.join(main_datafile_directory,current_date)
         
-        # if this directory exists: get number of last datafile in it
-        if os.path.exists(self.today_resultfiles_dir):
-            # check what files are in this folder
-            list_of_files = os.listdir(self.today_resultfiles_dir)
-            list_of_files = [x for x in list_of_files if '.csv' in x]   # only get csv files
-            if not list_of_files:
-                self.last_datafile_number = -1  # if there are no files
-            else:
-                # find the number of the last data file
-                last_datafile = list_of_files[len(list_of_files)-1]
-                idx_fileExt = last_datafile.rfind('.')
-                last_datafile = last_datafile[:idx_fileExt] # remove file extension
-                idx_underscore = last_datafile.rfind('_')   # find last underscore
-                last_datafile_num = last_datafile[idx_underscore+1:]
-                if last_datafile_num.isnumeric():   # if what's after the underscore is a number
-                    self.last_datafile_number = int(last_datafile_num)
-                else:
-                    self.last_datafile_number = 98  # if the last file doesn't have a number
-                    logger.warning('last datafile in this folder is %s',last_datafile)
-        # if this directory does not exist
+        # Get number of last datafile in the folder
+        # Check what files are in this folder
+        list_of_files = os.listdir(main_datafile_directory)
+        list_of_files = [x for x in list_of_files if '.csv' in x]   # only get csv files
+        if not list_of_files:
+            self.last_datafile_number = -1  # if there are no files
         else:
-            self.last_datafile_number = -1
+            # find the number of the last data file
+            last_datafile = list_of_files[len(list_of_files)-1]
+            idx_fileExt = last_datafile.rfind('.')
+            last_datafile = last_datafile[:idx_fileExt] # remove file extension
+            idx_underscore = last_datafile.rfind('_')   # find last underscore
+            last_datafile_num = last_datafile[idx_underscore+1:]
+            if last_datafile_num.isnumeric():   # if what's after the underscore is a number
+                self.last_datafile_number = int(last_datafile_num)
+            else:
+                self.last_datafile_number = 98  # if the last file doesn't have a number
+                logger.warning('last datafile in this folder is %s',last_datafile)
         
         # Create datafile name
         self.this_datafile_number = self.last_datafile_number + 1
@@ -210,7 +203,7 @@ class app(QGroupBox):
         # GUI FEATURES
         self.data_file_name_lineEdit = QLineEdit(text=data_file_name)
         self.data_file_textedit = QTextEdit(readOnly=True)
-        self.data_file_dir_lineEdit = QLineEdit(text=self.today_resultfiles_dir,readOnly=True)
+        self.data_file_dir_lineEdit = QLineEdit(text=main_datafile_directory,readOnly=True)
         self.data_file_notes_wid = QLineEdit()
         
         # BUTTONS
@@ -418,7 +411,7 @@ class app(QGroupBox):
                             writer = csv.writer(f,delimiter=',')
                             writer.writerow(write_to_file)
                         display_to_box = str(write_to_file)
-                        self.data_file_textedit.append(display_to_box[1:-1])                
+                        self.data_file_textedit.append(display_to_box[1:-1])
 
             except UnicodeDecodeError as err:   logger.error('Serial read error: %s',err)
     
