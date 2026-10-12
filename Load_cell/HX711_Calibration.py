@@ -183,17 +183,27 @@ class app(QGroupBox):
         if not list_of_files:
             self.last_datafile_number = -1  # if there are no files
         else:
-            # find the number of the last data file
+            # find the number of the last data file **with today's date
             last_datafile = list_of_files[len(list_of_files)-1]
-            idx_fileExt = last_datafile.rfind('.')
-            last_datafile = last_datafile[:idx_fileExt] # remove file extension
-            idx_underscore = last_datafile.rfind('_')   # find last underscore
-            last_datafile_num = last_datafile[idx_underscore+1:]
-            if last_datafile_num.isnumeric():   # if what's after the underscore is a number
+
+            # get the date
+            idx_first_underscore = last_datafile.find('_')
+            last_datafile_date = last_datafile[0:idx_first_underscore]
+            # if it is today's date: find the last datafile number
+            if last_datafile_date == current_date:
+                # get the number after 'datafile'
+                idx_datafile = last_datafile.rfind('datafile')
+                idx_next_underscore = last_datafile.find('_', idx_datafile, len(last_datafile))
+                idx_nextnext_underscore = last_datafile.find('_', idx_next_underscore+1, len(last_datafile))
+                idx_nextnext_period = last_datafile.find('.', idx_next_underscore+1, len(last_datafile))
+                # Filter out "not found" (-1) results, then take the smallest index
+                candidates = [i for i in (idx_nextnext_underscore,idx_nextnext_period) if i != -1]
+                result = min(candidates) if candidates else -1
+                last_datafile_num = last_datafile[idx_next_underscore+1:result]
                 self.last_datafile_number = int(last_datafile_num)
+            # if not: set the number to 0
             else:
-                self.last_datafile_number = 98  # if the last file doesn't have a number
-                logger.warning('last datafile in this folder is %s',last_datafile)
+                self.last_datafile_number = -1
         
         # Create datafile name
         self.this_datafile_number = self.last_datafile_number + 1
