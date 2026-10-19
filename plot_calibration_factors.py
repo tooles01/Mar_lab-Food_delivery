@@ -103,20 +103,19 @@ def main():
             sorted_weight_readings = this_file_weight_readings[sort_idx]
             sorted_cal_factors = this_file_calibration_factors[sort_idx]
 
-            # Interpolate any values between -1900 and -1910 if they do not exist
-            #cal_factor_targets = np.arange(-1900, -1911, -1)
-            cal_factor_targets = np.arange(-1850, -1950, -1)
-            cal_factors_to_add = cal_factor_targets[~np.isin(cal_factor_targets, sorted_cal_factors)]
-
-            weights_interpolated = np.interp(cal_factors_to_add, sorted_cal_factors, sorted_weight_readings)
-            
             # Dict of data for this file
             this_file_data = {
                 "file_name": file_name,
                 "weight_readings": sorted_weight_readings,
                 "calibration_factors": sorted_cal_factors
             }
+            
+            # Interpolate any values between -1900 and -1910 if they do not exist
+            cal_factor_targets = np.arange(-1850, -1950, -1)
+            cal_factors_to_add = cal_factor_targets[~np.isin(cal_factor_targets, sorted_cal_factors)]
 
+            weights_interpolated = np.interp(cal_factors_to_add, sorted_cal_factors, sorted_weight_readings)
+            
             this_file_data["cal_factors_interpolated"] = cal_factors_to_add
             this_file_data["weights_interpolated"] = weights_interpolated
 
@@ -196,7 +195,7 @@ def main():
         vline_label = f"{best_cal_factor} is best cal factor ({round(closest_val,2)} g)"
         ax.axvline(best_cal_factor,color='k',label=vline_label)
         ax.legend(loc='upper left')
-        
+
 
         # ylims
         ymax = weight*1.02
