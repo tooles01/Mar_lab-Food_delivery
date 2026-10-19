@@ -100,7 +100,10 @@ void loop() {
       calibration_factor = current_reading / weight_value;  // units are grams      
     }
     else {
-      Serial.println("Unknown string received");
+      // set the calibration factor to this number
+      calibration_factor = inString.toFloat();
+      Serial.print("Setting calibration factor to ");
+      Serial.println(calibration_factor);
     }
   }
 }
