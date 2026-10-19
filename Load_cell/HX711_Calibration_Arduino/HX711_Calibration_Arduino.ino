@@ -7,9 +7,7 @@
  * 
  * 
  * Example using the SparkFun HX711 breakout board with a scale
- * 
- * ST 2026
- * 
+ *
 
  This is the calibration sketch. Use it to determine the calibration_factor that the main example uses. It also
  outputs the zero_factor useful for projects that have a permanent mass on the scale in between power cycles.
@@ -24,13 +22,17 @@
 
  Your calibration factor may be very positive or very negative. It all depends on the setup of your scale system
  and the direction the sensors deflect from zero state
-
- Arduino pin 2 -> HX711 CLK
- 3 -> DOUT
- 5V -> VCC
- GND -> GND
-
-*/
+ * 
+ * 
+ * Arduino pin 2 -> HX711 CLK
+ * 3 -> DOUT
+ * 5V -> VCC
+ * GND -> GND
+ * 
+ * 
+ * 
+ * ST 2026
+ */
 
 #include "HX711.h"
 
@@ -40,12 +42,12 @@
 HX711 scale;
 
 float calibration_factor = -1883;
-
-float current_reading = 0.0;
+float current_reading;
 String inString;
 
 void setup() {
   Serial.begin(9600);
+  Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
   Serial.println("HX711 calibration sketch");
   Serial.println("Remove all weight from scale");
   Serial.println("After readings begin, place known weight on scale");
@@ -53,7 +55,7 @@ void setup() {
 
   scale.begin(DOUT, CLK);
   scale.set_scale();
-  scale.tare(); //Reset the scale to 0
+  scale.tare();
 
   long zero_factor = scale.read_average(); //Get a baseline reading
   Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
@@ -63,7 +65,6 @@ void setup() {
 void loop() {
 
   scale.set_scale(calibration_factor); //Adjust to this calibration factor
-
   current_reading = scale.get_units();
 
   Serial.print("Reading: ");
@@ -72,7 +73,7 @@ void loop() {
   Serial.print("\tcalibration_factor: ");
   Serial.println(calibration_factor);
   
-  if(Serial.available()) {
+  if (Serial.available()) {
     inString = Serial.readString();
     inString.trim();  // remove leading/trailing whitespaces
     if (inString.equals("tare")) {
