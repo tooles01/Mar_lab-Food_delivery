@@ -143,13 +143,6 @@ class app(QGroupBox):
 
     def create_calibration_factor_box(self):
         self.calibration_factor_box = QGroupBox("Calibration Factor")
-
-        self.dec_factor = QPushButton("-10")
-        self.inc_factor = QPushButton("+10")
-        self.dec_factor.setToolTip("Decrease calibration factor by 10")
-        self.inc_factor.setToolTip("Increase calibration factor by 10")
-        self.dec_factor.clicked.connect(lambda: self.send_to_arduino("z"))
-        self.inc_factor.clicked.connect(lambda: self.send_to_arduino("a"))
         
         self.send_lineedit = QLineEdit()
         self.send_lineedit.setPlaceholderText("-1870")
@@ -159,7 +152,6 @@ class app(QGroupBox):
         self.send_btn.clicked.connect(lambda: self.send_to_arduino(self.send_lineedit.text()))
         
         layout = QFormLayout()
-        layout.addRow(self.dec_factor,self.inc_factor)
         layout.addRow(self.send_lineedit,self.send_btn)
         self.calibration_factor_box.setLayout(layout)
 
