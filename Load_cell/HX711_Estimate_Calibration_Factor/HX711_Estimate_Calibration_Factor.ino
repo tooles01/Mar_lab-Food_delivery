@@ -35,7 +35,6 @@
 
 HX711 scale;
 
-
 float calibration_factor = 0;
 float current_reading;
 String inString;
@@ -44,7 +43,6 @@ int idx_start;
 int idx_number_start;
 String number_string;
 float weight_value;
-
 
 void setup() {
   Serial.begin(9600);
@@ -63,7 +61,6 @@ void setup() {
 void loop() {
 
   scale.set_scale(calibration_factor); //Adjust to this calibration factor
-
   current_reading = scale.get_units();
 
   Serial.print("Reading: ");
@@ -100,7 +97,10 @@ void loop() {
       calibration_factor = current_reading / weight_value;  // units are grams      
     }
     else {
-      Serial.println("Unknown string received");
+      // set the calibration factor to this number
+      calibration_factor = inString.toFloat();
+      Serial.print("Setting calibration factor to ");
+      Serial.println(calibration_factor);
     }
   }
 }

@@ -2,17 +2,27 @@
 
 Arduino script & Python GUI for reading/recording from load cell
 
+### Contents
+
+- [HX711_Calibration.py](HX711_Calibration.py)
+    - Python GUI for running calibrations. To be used with [HX711_Calibration_Arduino](HX711_Calibration_Arduino).
+- [HX711_Estimate_Calibration_Factor](HX711_Estimte_Calibration_Factor)
+    - Standalone Arduino script for estimating calibration factor. Useful when setting up a new load cell/amplifier.
+
+
 ---
 
 # Quick Start
 
-### [Set up hardware](#hardware)
+## Set up
 
-### [Set up firmware](#firmware)
+### [Hardware](#hardware)
 
-### [Install python GUI](#software)
+### [Firmware](#firmware)
 
-### Run GUI
+### [Python GUI](#software)
+
+## Run GUI
 
 1. **Open command prompt/terminal**
 2. **Navigate into the directory "Mar_lab-Food_delivery"**
@@ -156,7 +166,7 @@ Arduino script & Python GUI for reading/recording from load cell
 
 5. Install dependencies
    ```bash
-   pip install PyQt5 pyserial
+   pip install PyQt5 pyserial numpy
    ```
 
 6. Run the application
