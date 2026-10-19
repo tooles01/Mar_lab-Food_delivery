@@ -25,21 +25,24 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Turn interactive mode on
+plt.ion()
+
 weights = [10, 50, 100, 110]
 
 # Files to import and plot
 files = []
 
+'''
 # 2026-10-12 test01
-'''
-'''
 files.append('2026-10-12_10g_test01')
 files.append('2026-10-12_50g_test01')
 files.append('2026-10-12_100g_test01')
 files.append('2026-10-12_110g_test01')
-
-# 2026-10-12 test02
 '''
+
+'''
+# 2026-10-12 test02
 files.append('2026-10-12_10g_test02')
 files.append('2026-10-12_50g_test02')
 files.append('2026-10-12_100g_test02')
@@ -61,6 +64,13 @@ files.append('2026-10-15_50g_test01')
 files.append('2026-10-15_100g_test01')
 files.append('2026-10-15_110g_test01')
 '''
+
+# 2026-10-19_test01
+files.append('2026-10-19_10g_test01')
+files.append('2026-10-19_50g_test01')
+files.append('2026-10-19_100g_test01')
+files.append('2026-10-19_110g_test01')
+
 
 def main():
     
@@ -84,19 +94,44 @@ def main():
                 this_file_weight_readings.append(float(row[0]))
                 this_file_calibration_factors.append(float(row[1]))
 
-            # Sort for better readability
+            # Convert to numpy array for analysis
             this_file_weight_readings = np.array(this_file_weight_readings)
             this_file_calibration_factors = np.array(this_file_calibration_factors)
-            sort_idx = np.argsort(this_file_weight_readings)
+            
+            # Sort by ascending to interpolate
+            sort_idx = np.argsort(this_file_calibration_factors)
             sorted_weight_readings = this_file_weight_readings[sort_idx]
-            sorted_calibration_factors = this_file_calibration_factors[sort_idx]
+            sorted_cal_factors = this_file_calibration_factors[sort_idx]
+
+            # Interpolate any values between -1900 and -1910 if they do not exist
+            #cal_factor_targets = np.arange(-1900, -1911, -1)
+            cal_factor_targets = np.arange(-1850, -1950, -1)
+            cal_factors_to_add = cal_factor_targets[~np.isin(cal_factor_targets, sorted_cal_factors)]
+
+            weights_interpolated = np.interp(cal_factors_to_add, sorted_cal_factors, sorted_weight_readings)
             
             # Dict of data for this file
             this_file_data = {
                 "file_name": file_name,
                 "weight_readings": sorted_weight_readings,
-                "calibration_factors": sorted_calibration_factors
+                "calibration_factors": sorted_cal_factors
             }
+
+            this_file_data["cal_factors_interpolated"] = cal_factors_to_add
+            this_file_data["weights_interpolated"] = weights_interpolated
+
+            all_weights = np.concatenate((sorted_weight_readings, weights_interpolated))
+            all_cal_factors = np.concatenate((sorted_cal_factors,cal_factors_to_add))
+
+            # Sort it again
+            sort_idx = np.argsort(all_cal_factors)
+            all_weights = all_weights[sort_idx]
+            all_cal_factors = all_cal_factors[sort_idx]
+
+            # Add to the dict
+            this_file_data["all_weights"] = all_weights
+            this_file_data["all_cal_factors"] = all_cal_factors
+
             all_files_data.append(this_file_data)
 
     '''
@@ -133,7 +168,13 @@ def main():
         this_file_name = file_dict["file_name"]
         this_file_weights = file_dict["weight_readings"]
         this_file_cal_factors = file_dict["calibration_factors"]
-        ax.scatter(this_file_cal_factors,this_file_weights,s=40)#,label=this_file_name)
+        weights_interpolated = file_dict["weights_interpolated"]
+        cal_factors_interpolated = file_dict["cal_factors_interpolated"]
+        all_weights = file_dict["all_weights"]
+        all_cal_factors = file_dict["all_cal_factors"]
+
+        s1 = ax.scatter(this_file_cal_factors,this_file_weights,s=40)#,label=this_file_name)
+        s2 = ax.scatter(cal_factors_interpolated,weights_interpolated,alpha=0.4,color=s1.get_facecolors())
         ax.axhline(weight,color='k')
         ax.set_ylabel('Weight Readings (g)')
         ax.set_xlabel('Calibration Factor')
@@ -141,38 +182,32 @@ def main():
         ax.grid(True)
 
         # which was the best calibration factor
-        # find the point that has "weight reading" closest to "weight"
-        # put a vertical line there
-        # put a label that says what the calibration factor is
+        # find the calibration factor where "weight reading" was closest to "weight"
         closest_idx, closest_val = min(
-            enumerate(this_file_weights),
+            enumerate(all_weights),
             key=lambda pair: abs(pair[1] - weight))
 
         # best calibration factor will be found at
-        best_cal_factor = this_file_cal_factors[closest_idx]
-
+        best_cal_factor = all_cal_factors[closest_idx]
+        
+        # TODO 10/19/2026 maybe we interpolate over the weights, not the calibration factor
+                
         # put a vertical line there and a label
         vline_label = f"{best_cal_factor} is best cal factor ({round(closest_val,2)} g)"
         ax.axvline(best_cal_factor,color='k',label=vline_label)
-        ax.legend()
-
+        ax.legend(loc='upper left')
+        
 
         # ylims
         ymax = weight*1.02
         ymin = weight*.98
         #ymax = weight*1.01
         #ymin = weight*.99
-        ax.set_ylim([ymin, ymax])
+        #ax.set_ylim([ymin, ymax])
 
     
     plt.tight_layout()
-    plt.show()
-    
-
-    x=1
-
-
-
+    plt.show(block=True)
 
 
 main()
