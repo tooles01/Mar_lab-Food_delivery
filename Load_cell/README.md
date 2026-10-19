@@ -156,7 +156,7 @@ Arduino script & Python GUI for reading/recording from load cell
 
 5. Install dependencies
    ```bash
-   pip install PyQt5 pyserial
+   pip install PyQt5 pyserial numpy
    ```
 
 6. Run the application
