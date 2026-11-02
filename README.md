@@ -1,4 +1,28 @@
-## plot_calibration_factors.py
+# plot_data_files.py
+
+
+## User enters names of the file to be analyzed
+```python
+file_name = '2026-09-28_datafile_13_100g'
+```
+
+## Script imports the data
+
+## Get the average readings for the first 30 seconds
+Keep getting the average readings over the next 30 seconds, then the next, etc
+
+## Plot all of the data
+### Horizontal line at each 30 second mark
+### Red line shows the average reading for each of those sections of data
+
+
+![image](Load_cell/images/plot_data_files_2026-11-02_datafile_00_100g.png)
+
+---
+
+<br>
+
+# plot_calibration_factors.py
 
 This is for finding the ideal calibration factor at a given weight.  
 Input files are data of [weight_reading, calibration_factor]
