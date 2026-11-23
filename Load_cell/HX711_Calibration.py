@@ -202,7 +202,11 @@ class app(QGroupBox):
                 candidates = [i for i in (idx_nextnext_underscore,idx_nextnext_period) if i != -1]
                 result = min(candidates) if candidates else -1
                 last_datafile_num = last_datafile[idx_next_underscore+1:result]
-                self.last_datafile_number = int(last_datafile_num)
+                try:
+                    self.last_datafile_number = int(last_datafile_num)
+                except ValueError as err:
+                    logger.debug('No number entered for last datafile') # TODO 10/26/2026 FIX
+                    self.last_datafile_number = -1
             # if not: set the number to 0
             else:
                 self.last_datafile_number = -1
@@ -529,7 +533,7 @@ class app(QGroupBox):
                 # Ask user if they want to overwrite the current file
                 msg_box = QMessageBox()
                 msg_box.setWindowTitle('Confirm Overwrite')
-                msg_box.setText(self.new_cal_file_name + ' already exists: overwrite?')
+                msg_box.setText(self.new_cal_file_name + ' already exists: overwrite?') # TODO 10/26/2026 add option for "append to file"
                 msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 msg_box.setDefaultButton(QMessageBox.No)
                 ret = msg_box.exec()
@@ -626,7 +630,7 @@ class app(QGroupBox):
             # Calculations
             weight_min = min(self.weight_readings)
             weight_max = max(self.weight_readings)
-            weight_range = weight_max - weight_min
+            weight_range = round((weight_max - weight_min),2)
             self.cal_results_min_wid.setText(str(weight_min))
             self.cal_results_max_wid.setText(str(weight_max))
             self.cal_results_med_wid.setText(str(weight_median))
@@ -642,8 +646,9 @@ class app(QGroupBox):
             # Put mean value in the widget so the user can decide whether to keep it or not
             self.this_cal_weight_mean = weight_mean
             if type(self.this_cal_weight_mean) is np.float64:
-                pair = str(self.this_cal_weight_value) + ', ' + str(round(self.this_cal_weight_mean,2))
-                pair = str(round(self.this_cal_weight_mean,4)) + ',' + str(this_round_calibration_factor)
+                #pair = str(self.this_cal_weight_value) + ', ' + str(round(self.this_cal_weight_mean,2))    # TODO 10/26/2026 remove
+                #pair = str(round(self.this_cal_weight_mean,2)) + ',' + str(this_round_calibration_factor)
+                pair = str(self.this_cal_weight_mean) + ',' + str(this_round_calibration_factor)
                 self.write_to_file_wid.setText(pair)
             else:
                 logger.warning('calculated value was not an int - cannot save this value')
@@ -724,7 +729,7 @@ class app(QGroupBox):
                     # if recording is ON: write to datafile
                     if self.begin_record_btn.isChecked():
                         current_time = get_current_time()
-                        write_to_file = current_time,reading,calibration_value
+                        write_to_file = current_time,reading,calibration_value,current_time
                         with open(self.datafile_dir,'a',newline='') as f:
                             writer = csv.writer(f,delimiter=',')
                             writer.writerow(write_to_file)
