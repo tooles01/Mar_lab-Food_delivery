@@ -41,25 +41,35 @@
 
 HX711 scale;
 
-float calibration_factor = -1883;
+float calibration_factor = 0;
 float current_reading;
 String inString;
+
+int idx_start;
+int idx_number_start;
+String number_string;
+float weight_value;
 
 void setup() {
   Serial.begin(9600);
   Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-  Serial.println("HX711 calibration sketch");
+  Serial.println("HX711 calibration combo");
   Serial.println("Remove all weight from scale");
   Serial.println("After readings begin, place known weight on scale");
   Serial.println("Enter any value (must be 2+ digits long) to update the calibration factor");
-
+  Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+  Serial.println("Also provides estimated calibration factor");
+  
   scale.begin(DOUT, CLK);
   scale.set_scale();
   scale.tare();
-
+  
   long zero_factor = scale.read_average(); //Get a baseline reading
   Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
   Serial.println(zero_factor);
+
+  Serial.println("Place a weight on the scale");
+  Serial.println("Enter the weight by sending 'weight50' (for 50g)");
 }
 
 void loop() {
@@ -80,6 +90,27 @@ void loop() {
       Serial.println("Resetting scale to zero");
       scale.tare();
       scale.set_scale(calibration_factor); //Adjust to this calibration factor
+    }
+    else if (inString.indexOf("weight") != -1) {
+      // Get the weight that was entered CANNOT BE 0
+      idx_start = inString.indexOf("weight");
+      idx_number_start = idx_start + 6; // length of "weight"
+      number_string = inString.substring(idx_number_start);
+      weight_value = number_string.toFloat();
+
+      Serial.print("received weight: ");
+      Serial.print(number_string);
+      Serial.println(" g");
+
+      // Call get_value (raw units, not affected by previous caliration)
+      current_reading = scale.get_value(10);  // average of 10 raw readings
+
+      // Divide by known weight
+      calibration_factor = current_reading / weight_value;  // units are grams
+
+      Serial.print("estimated calibration factor: ");
+      Serial.println(calibration_factor);
+
     }
     else {
       // set the calibration factor to this number
