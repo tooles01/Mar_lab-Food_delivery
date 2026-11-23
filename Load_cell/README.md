@@ -14,7 +14,7 @@ Arduino script & Python GUI for reading/recording from load cell
 
 # Quick Start
 
-## Set up
+## Setup
 
 ### [Hardware](#hardware)
 
