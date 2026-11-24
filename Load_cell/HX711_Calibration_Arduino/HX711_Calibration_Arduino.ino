@@ -1,5 +1,5 @@
 /*
- * HX711_Calibration_Arduino.ino
+ * HX711_Calibration_Arduino_2scales.ino
  * 
  * 
  * Modified version of Sparkfun example calibration script found at:
@@ -25,7 +25,7 @@
  * 
  * 
  * Arduino pin 2 -> HX711 CLK
- * 3 -> DOUT
+ * 3 -> DOUT_1
  * 5V -> VCC
  * GND -> GND
  * 
@@ -36,13 +36,18 @@
 
 #include "HX711.h"
 
-#define DOUT  3
-#define CLK  2
+#define DOUT_1  3
+#define CLK_1  2
 
-HX711 scale;
+#define DOUT_2 5
+#define CLK_2 4
+
+HX711 scale_1;
+HX711 scale_2;
 
 float calibration_factor = 0;
-float current_reading;
+float current_reading_1;
+float current_reading_2;
 String inString;
 
 int idx_start;
@@ -60,25 +65,36 @@ void setup() {
   Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
   Serial.println("Also provides estimated calibration factor");
   
-  scale.begin(DOUT, CLK);
-  scale.set_scale();
-  scale.tare();
+  scale_1.begin(DOUT_1, CLK_1);
+  scale_1.set_scale();
+  scale_1.tare();
+  scale_2.begin(DOUT_2, CLK_2);
+  scale_2.set_scale();
+  scale_2.tare();
   
-  long zero_factor = scale.read_average(); //Get a baseline reading
-  Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
-  Serial.println(zero_factor);
+  long zero_factor_1 = scale_1.read_average(); //Get a baseline reading
+  long zero_factor_2 = scale_2.read_average(); //Get a baseline reading
+  Serial.print("Zero factor_1: "); //This can be used to remove the need to tare the scale. Useful in permanent scale1 projects.
+  Serial.println(zero_factor_1);
+  Serial.print("Zero factor_2: "); //This can be used to remove the need to tare the scale. Useful in permanent scale1 projects.
+  Serial.println(zero_factor_2);
 
-  Serial.println("Place a weight on the scale");
+  Serial.println("Place a weight on the scale1");
   Serial.println("Enter the weight by sending 'weight50' (for 50g)");
 }
 
 void loop() {
 
-  scale.set_scale(calibration_factor); //Adjust to this calibration factor
-  current_reading = scale.get_units();
+  scale_1.set_scale(calibration_factor); //Adjust to this calibration factor
+  current_reading_1 = scale_1.get_units();
+  scale_2.set_scale(calibration_factor); //Adjust to this calibration factor
+  current_reading_2 = scale_2.get_units();
 
-  Serial.print("Reading: ");
-  Serial.print(current_reading);
+  Serial.print("Scale1: ");
+  Serial.print(current_reading_1);
+  Serial.print(" g\t");
+  Serial.print("Scale2: ");
+  Serial.print(current_reading_2);
   Serial.print(" g");
   Serial.print("\tcalibration_factor: ");
   Serial.println(calibration_factor);
@@ -87,10 +103,14 @@ void loop() {
     inString = Serial.readString();
     inString.trim();  // remove leading/trailing whitespaces
     if (inString.equals("tare")) {
-      Serial.println("Resetting scale to zero");
-      scale.tare();
-      scale.set_scale(calibration_factor); //Adjust to this calibration factor
+      Serial.println("Resetting scale1 to zero");
+      scale_1.tare();
+      scale_1.set_scale(calibration_factor); //Adjust to this calibration factor
+      scale_2.tare();
+      scale_2.set_scale(calibration_factor); //Adjust to this calibration factor
     }
+    
+    // Estimate calibration factor
     else if (inString.indexOf("weight") != -1) {
       // Get the weight that was entered CANNOT BE 0
       idx_start = inString.indexOf("weight");
@@ -103,15 +123,16 @@ void loop() {
       Serial.println(" g");
 
       // Call get_value (raw units, not affected by previous caliration)
-      current_reading = scale.get_value(10);  // average of 10 raw readings
+      current_reading_1 = scale_1.get_value(10);  // average of 10 raw readings
 
       // Divide by known weight
-      calibration_factor = current_reading / weight_value;  // units are grams
+      calibration_factor = current_reading_1 / weight_value;  // units are grams
 
       Serial.print("estimated calibration factor: ");
       Serial.println(calibration_factor);
 
     }
+    // Set calibration factor
     else {
       // set the calibration factor to this number
       calibration_factor = inString.toFloat();

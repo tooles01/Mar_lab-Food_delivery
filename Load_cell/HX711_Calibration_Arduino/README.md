@@ -40,10 +40,19 @@ You can also tare the scale at any time. Use the automatic estimate to get close
 
 Jumper VCC/VDD on HX711
 
+#### Scale #1
 | HX711 Pin | Arduino Pin |
 |---|---|
 | `DAT` (data) | `3` |
 | `CLK` (SCK) | `2` |
+| `VCC` | `3.3V` # TODO check if this should be 5V instead...|
+| `GND` | `GND` |
+
+#### Scale #2
+| HX711 Pin | Arduino Pin |
+|---|---|
+| `DAT` (data) | `5` |
+| `CLK` (SCK) | `4` |
 | `VCC` | `3.3V` # TODO check if this should be 5V instead...|
 | `GND` | `GND` |
 
