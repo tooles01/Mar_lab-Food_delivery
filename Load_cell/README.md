@@ -9,18 +9,20 @@ Arduino script & Python GUI for reading/recording from load cell
 - [HX711_Estimate_Calibration_Factor](HX711_Estimte_Calibration_Factor)
     - Standalone Arduino script for estimating calibration factor. Useful when setting up a new load cell/amplifier.
 
+<br>
 
 ---
+# Setup
 
-# Quick Start
+### [Hardware](HX711_Calibration_Arduino/README.md#hardware)
 
-## Setup
-
-### [Hardware](#hardware)
-
-### [Firmware](#firmware)
+### [Firmware](HX711_Calibration_Arduino/README.md#firmware)
 
 ### [Python GUI](#software)
+<br>
+
+---
+# Quick Start
 
 ## Run GUI
 
@@ -80,49 +82,6 @@ Arduino script & Python GUI for reading/recording from load cell
 ---
 
 # Setup
-
-## Hardware
-
-### Materials
-- Arduino UNO
-- Load cell (taken from [WeighGram Top-600](https://www.amazon.com/dp/B000O37TDO?ref=clp_hp_h_pc&th=1) scale)
-- [HX711 Amplifier](https://www.sparkfun.com/sparkfun-load-cell-amplifier-hx711.html#content-features)
-- Dupont wires
-
-
-### Assembly
-- Break load cell out of scale.
-- Solder red and black wires to corresponding positions on Sparkfun HX711 amplifier board
-    - red wire --> **RED**
-    - black wire --> **BLK**
-- Solder white and green wires to **opposite** positions on HX711 board
-    - green wire --> **WHT**
-    - white wire --> **GRN**
-- Connect HX711 to Arduino UNO
-    - Jumper VCC/VDD
-    - VCC ---> 3.3V # TODO check if this should be 5V instead...
-    - DAT ---> 3
-    - CLK ---> 2
-    - GND ---> GND
-
-
-## Firmware
-
-### Install HX711 Arduino package
-- Download .zip file from [HX711 Github](https://github.com/bogde/HX711).
-- In Arduino, go to **Sketch** --> **Include Library** --> **Add .ZIP Library**
-- Select **HX711-master.zip** from your downloads folder
-
-### Upload sketch
-- Remove all weight from scale
-- Plug in Arduino via USB
-- Upload sketch
-    - Open [```HX711_Calibration_Arduino.ino```](HX711_Calibration_Arduino) in the Arduino IDE
-    - Select:
-        - **Tools** --> **Board** --> Board type you are using
-        - **Port** --> Port the board is connected to
-        - **Sketch** --> **Upload**
-    - Scale will tare and reset to zero
 
 ## Software
 

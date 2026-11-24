@@ -15,36 +15,70 @@ You can also tare the scale at any time. Use the automatic estimate to get close
 - Streams live readings and the active calibration factor over serial
 - Prints the raw "zero factor" at startup. You can use it to skip taring in permanent installations.
 
-## Hardware Required
+## Hardware
+
+### Materials
 
 | Component | Notes |
 |---|---|
 | Arduino (Uno, Nano, etc.) | Any board supported by the HX711 library |
-| HX711 breakout board | Load cell amplifier / ADC |
-| Load cell | Bar-type, S-type, etc. |
+| [HX711 breakout board](https://www.sparkfun.com/sparkfun-load-cell-amplifier-hx711.html) | Load cell amplifier / ADC |
+| Load cell | taken from [WeighGram Top-600](https://www.amazon.com/dp/B000O37TDO?ref=clp_hp_h_pc&th=1) scale |
+| Dupont wires| |
 | Known reference weight | Any accurately known mass. It must be non-zero. |
 
-### Wiring
+### Assembly
+- Break load cell out of scale.
+- Solder red and black wires to corresponding positions on Sparkfun HX711 amplifier board
+    - red wire --> **RED**
+    - black wire --> **BLK**
+- Solder white and green wires to **opposite** positions on HX711 board
+    - green wire --> **WHT**
+    - white wire --> **GRN**
+
+### Wiring to Arduino
+
+Jumper VCC/VDD on HX711
 
 | HX711 Pin | Arduino Pin |
 |---|---|
-| `DOUT` (data) | `3` |
+| `DAT` (data) | `3` |
 | `CLK` (SCK) | `2` |
-| `VCC` | `5V` |
+| `VCC` | `3.3V` # TODO check if this should be 5V instead...|
 | `GND` | `GND` |
 
+<!--
 To use different pins, edit these lines:
 
 ```cpp
 #define DOUT  3
 #define CLK   2
 ```
+-->
+<br>
 
-## Software Requirements
+---
+## Firmware
 
-- [Arduino IDE](https://www.arduino.cc/en/software) or PlatformIO
-- The **HX711** library, such as [bogde/HX711](https://github.com/bogde/HX711). Install it from the Arduino Library Manager by searching for "HX711".
+### Install HX711 Arduino package
+- Download .zip file from [HX711 Github](https://github.com/bogde/HX711).
+- In Arduino, go to **Sketch** --> **Include Library** --> **Add .ZIP Library**
+- Select **HX711-master.zip** from your downloads folder
 
+### Upload sketch
+- Remove all weight from scale
+- Plug in Arduino via USB
+- Upload sketch
+    - Open [```HX711_Calibration_Arduino.ino```](HX711_Calibration_Arduino) in the Arduino IDE
+    - Select:
+        - **Tools** --> **Board** --> Board type you are using
+        - **Port** --> Port the board is connected to
+        - **Sketch** --> **Upload**
+    - Scale will tare and reset to zero
+
+<br>
+
+---
 ## Getting Started
 
 1. Wire the hardware as shown above.
@@ -54,6 +88,9 @@ To use different pins, edit these lines:
 5. **Remove all weight** from the scale during startup. The sketch tares automatically.
 6. Wait for the "Place a weight on the scale" prompt.
 
+<br>
+
+---
 ## Calibration Procedure
 
 ### Option A: Automatic estimate (recommended first step)
