@@ -18,72 +18,7 @@ Arduino script & Python GUI for reading/recording from load cell
 
 ### [Firmware](HX711_Calibration_Arduino/README.md#firmware)
 
-### [Python GUI](#software)
-<br>
-
----
-# Quick Start
-
-## Run GUI
-
-1. **Open command prompt/terminal**
-2. **Navigate into the directory "Mar_lab-Food_delivery"**
-    
-    ```bash
-    cd Mar_lab-Food_delivery
-    ```
-
-3. **Activate virtual environment**
-
-    Windows:
-    ```bash
-    <environment_name\scripts\activate.bat
-    ```
-    Linux:
-    ```bash
-    source environment_name/bin/activate
-    ```
-
-4. **Run the python application**
-
-    Windows:
-   ```bash
-   python Load_cell/HX711_Calibration.py
-   ```
-    Linux:
-   ```bash
-   python3 Load_cell/HX711_Calibration.py
-   ```
-
-<br>
-
----
-
-# Usage
-
-## Basic usage
-- Open the GUI and connect to the Arduino
-![image](images/connect_to_device.png)
-- Current reading and calibration factor will be displayed in the "Data received" box
-![image](images/current_reading.png)
-
-## To tare:
-- Remove all weight from the scale
-- Click **"Tare"**
-- The current reading will reset to 0.00 g
-
-## To calibrate
-- Tare the scale
-- Place a known weight on the scale
-- Adjust the calibration factor until the reading matches the known weight
-
-<br>
-
----
-
-# Setup
-
-## Software
+### Software
 
 1. Open a command prompt/terminal
 
@@ -138,3 +73,58 @@ Arduino script & Python GUI for reading/recording from load cell
    ```bash
    python3 Load_cell/HX711_Calibration.py
    ```
+<br>
+
+---
+# Quick Start
+
+## Run GUI
+
+1. **Open command prompt/terminal**
+2. **Navigate into the directory "Mar_lab-Food_delivery"**
+    
+    ```bash
+    cd Mar_lab-Food_delivery
+    ```
+
+3. **Activate virtual environment**
+
+    Windows:
+    ```bash
+    <environment_name\scripts\activate.bat
+    ```
+    Linux:
+    ```bash
+    source environment_name/bin/activate
+    ```
+
+4. **Run the python application**
+
+    Windows:
+   ```bash
+   python Load_cell/HX711_Calibration.py
+   ```
+    Linux:
+   ```bash
+   python3 Load_cell/HX711_Calibration.py
+   ```
+<br>
+
+---
+# Usage
+
+## Basic usage
+- Open the GUI and connect to the Arduino
+![image](images/connect_to_device.png)
+- Current reading and calibration factor will be displayed in the "Data received" box
+![image](images/current_reading.png)
+
+## To tare:
+- Remove all weight from the scale
+- Click **"Tare"**
+- The current reading will reset to 0.00 g
+
+## To calibrate
+- Tare the scale
+- Place a known weight on the scale
+- Adjust the calibration factor until the reading matches the known weight
