@@ -68,6 +68,11 @@ current_date = str(datetime.date(datetime.now()))
 main_datafile_directory = find_log_directory()
 FLOAT = r"[-+]?\d*\.?\d+"
 
+# Patterns for: "Scale1: 0.12 g Scale2: 0.02 g calibration_factor: -1907.00"
+SCALE1_RE  = re.compile(rf"Scale1\s*[:=]?\s*({FLOAT})", re.IGNORECASE)
+SCALE2_RE  = re.compile(rf"Scale2\s*[:=]?\s*({FLOAT})", re.IGNORECASE)
+CALFAC_RE  = re.compile(rf"calibration[\s_-]*factor\s*[:=]?\s*({FLOAT})", re.IGNORECASE)
+
 flowSens_baud = 9600
 noPortMsg = ' ~ No COM ports detected ~'
 
@@ -159,21 +164,47 @@ class app(QGroupBox):
         self.data_receive_box = QGroupBox()
 
         self.raw_write_display = QTextEdit(readOnly=True)
-        self.raw_read_display = QTextEdit(readOnly=True)
+        self.messages_received_display = QTextEdit(readOnly=True)
+        self.scale1_display     = QTextEdit(readOnly=True)
+        self.scale2_display     = QTextEdit(readOnly=True)
+        self.cal_factor_display = QTextEdit(readOnly=True)
+        self.read_displays = [self.scale1_display, self.scale2_display, self.cal_factor_display]
 
+        # Scroll all three boxes together so the rows stay lined up
+        for a in self.read_displays:
+            for b in self.read_displays:
+                if a is not b:
+                    a.verticalScrollBar().valueChanged.connect(b.verticalScrollBar().setValue)
+
+        # Clear buttons
         self.clear_btn_write = QPushButton("Clear")
         self.clear_btn_read = QPushButton("Clear")
         self.clear_btn_write.setToolTip("Clear display")
-        self.clear_btn_read.setToolTip("Clear display (Does not affect data collection)")
+        self.clear_btn_read.setToolTip("Clear displays (Does not affect data collection)")
         self.clear_btn_write.clicked.connect(lambda: self.raw_write_display.clear())
-        self.clear_btn_read.clicked.connect(lambda: self.raw_read_display.clear())
-        
+        self.clear_btn_read.clicked.connect(self.clear_read_displays)
+
+        # Side-by-side layout for the three boxes
+        read_layout = QGridLayout()
+        read_layout.addWidget(QLabel("Scale 1 (g):"),        0, 0)
+        read_layout.addWidget(QLabel("Scale 2 (g):"),        0, 1)
+        read_layout.addWidget(QLabel("Calibration factor:"), 0, 2)
+        read_layout.addWidget(self.scale1_display,           1, 0)
+        read_layout.addWidget(self.scale2_display,           1, 1)
+        read_layout.addWidget(self.cal_factor_display,       1, 2)
+
         receive_box_layout = QFormLayout()
         receive_box_layout.addRow(QLabel("Data sent:"),self.clear_btn_write)
         receive_box_layout.addRow(self.raw_write_display)
+        receive_box_layout.addRow(QLabel("Messages received from Arduino:"))
+        receive_box_layout.addRow(self.messages_received_display)
         receive_box_layout.addRow(QLabel("Data received:"),self.clear_btn_read)
-        receive_box_layout.addRow(self.raw_read_display)
+        receive_box_layout.addRow(read_layout)
         self.data_receive_box.setLayout(receive_box_layout)
+
+    def clear_read_displays(self):
+        for d in self.read_displays:
+            d.clear()
 
     def create_datafile_box(self):
         self.datafile_groupbox = QGroupBox('Data File')
@@ -712,37 +743,48 @@ class app(QGroupBox):
     ########################################
     # SEND/RECEIVE DATA
     def receive(self):
-        if self.serial.canReadLine() == True:
+        # 'while' instead of 'if' so lines that arrive together aren't left in the buffer
+        while self.serial.canReadLine():
             text = self.serial.readLine(1024)
             try:
-                text = text.decode("utf-8")
-                text = text.rstrip('\r\n')
-                self.raw_read_display.append(text)
+                text = text.decode("utf-8").rstrip('\r\n')
+            except UnicodeDecodeError as err:
+                logger.error('Serial read error: %s', err)
+                continue
 
-                # Pull out the reading and calibration value
-                r = re.search(rf"reading\s*[:=]?\s*({FLOAT})", text, re.IGNORECASE)
-                c = re.search(rf"calibration[\s_-]*factor\s*[:=]?\s*({FLOAT})", text, re.IGNORECASE)
-                if r and c:
-                    reading = float(r.group(1))
-                    calibration_value = float(c.group(1))
+            s1 = SCALE1_RE.search(text)
+            s2 = SCALE2_RE.search(text)
+            c  = CALFAC_RE.search(text)
+            if not (s1 and s2 and c):
+                logger.debug('Received from Arduino: %s', text)
+                self.messages_received_display.append(text)
+                continue
 
-                    # if recording is ON: write to datafile
-                    if self.begin_record_btn.isChecked():
-                        current_time = get_current_time()
-                        write_to_file = current_time,reading,calibration_value,current_time
-                        with open(self.datafile_dir,'a',newline='') as f:
-                            writer = csv.writer(f,delimiter=',')
-                            writer.writerow(write_to_file)
-                        display_to_box = str(write_to_file)
-                        self.data_file_textedit.append(display_to_box[1:-1])
+            # Show each value in its own box (raw text keeps the Arduino's formatting)
+            self.scale1_display.append(s1.group(1))
+            self.scale2_display.append(s2.group(1))
+            self.cal_factor_display.append(c.group(1))
 
-                    # if calibration is ON:
-                    if self.calibration_on == True:
-                        self.weight_readings.append(reading)
-                        self.calibration_factors.append(calibration_value)
-                        self.collected_values_wid.append(str(calibration_value))
+            scale1 = float(s1.group(1))
+            scale2 = float(s2.group(1))
+            calibration_value = float(c.group(1))
 
-            except UnicodeDecodeError as err:   logger.error('Serial read error: %s',err)
+            # if recording is ON: write to datafile
+            if self.begin_record_btn.isChecked():
+                current_time = get_current_time()
+                write_to_file = current_time,scale1,scale2,calibration_value,current_time
+                with open(self.datafile_dir,'a',newline='') as f:
+                    writer = csv.writer(f,delimiter=',')
+                    writer.writerow(write_to_file)
+                display_to_box = str(write_to_file)
+                self.data_file_textedit.append(display_to_box[1:-1])
+
+            # TODO 11/25/2026 calibration still only works for scale1
+            # if calibration is ON:
+            if self.calibration_on == True:
+                self.weight_readings.append(scale1)
+                self.calibration_factors.append(calibration_value)
+                self.collected_values_wid.append(str(calibration_value))
     
     def send_to_arduino(self, strToSend):
         bArr_send = strToSend.encode()
